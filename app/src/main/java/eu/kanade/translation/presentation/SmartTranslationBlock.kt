@@ -51,18 +51,24 @@ fun SmartTranslationBlock(
         ) {
             block.translation.lines().forEach { line ->
                 Text(
-                    text = line,
-                    fontFamily = fontFamily,
-                    fontSize = 18.sp,       // <<-- Set a constant font size
-                    lineHeight = 22.sp,     // <<-- Even spacing between lines
-                    color = Color.Black,    // or theme color
-                    maxLines = 1,           // No wrapping within a line
-                    overflow = TextOverflow.Ellipsis, // Truncate if too long
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .width(width - 8.dp) // leave a bit of padding
-                        // (optional) .background(Color.White.copy(alpha=0.1f))
-                )
+    text = line,
+    fontFamily = fontFamily,
+    fontSize = 18.sp,
+    color = Color.Black,
+    lineHeight = 22.sp,
+    softWrap = true,  // Enable line wrapping
+    maxLines = 3,     // Allow multiple lines if bubble supports it
+    overflow = TextOverflow.Ellipsis,
+    textAlign = TextAlign.Center,
+    style = TextStyle(
+        platformStyle = PlatformTextStyle(
+            breakStrategy = BreakStrategy.HighQuality  // Prevent breaking inside words where possible
+        )
+    ),
+    modifier = Modifier.width(width - 8.dp) // Set width to bubble width minus padding
+)
+
+
             }
         }
     }
