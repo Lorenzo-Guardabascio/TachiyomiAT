@@ -38,7 +38,7 @@ internal class AppUpdateNotifier(private val context: Context) {
     fun promptUpdate(release: Release) {
         val updateIntent = NotificationReceiver.downloadAppUpdatePendingBroadcast(
             context,
-            release.downloadLink,
+            release.getDownloadLink(),
             release.version,
         )
 

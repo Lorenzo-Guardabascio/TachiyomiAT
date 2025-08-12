@@ -82,8 +82,8 @@ fun MangaNotesTextArea(
     }
     LaunchedEffect(Unit) {
         richTextState.setMarkdown(state.notes)
-        richTextState.config.unorderedListIndent = 4
-        richTextState.config.orderedListIndent = 20
+        // richTextState.config.unorderedListIndent = 4
+        // richTextState.config.orderedListIndent = 20
     }
     LaunchedEffect(primaryColor) {
         richTextState.config.linkColor = primaryColor

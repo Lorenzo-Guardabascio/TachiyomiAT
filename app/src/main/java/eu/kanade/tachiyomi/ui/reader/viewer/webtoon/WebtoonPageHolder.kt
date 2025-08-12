@@ -13,6 +13,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import eu.kanade.presentation.util.formattedMessage
 import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
 import eu.kanade.tachiyomi.source.model.Page
+import tachiyomi.i18n.MR
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
@@ -174,12 +175,12 @@ class WebtoonPageHolder(
                         }
                     }
 
-                    Page.State.READY -> {
+                    Page.State.Ready -> {
                         setImage()
                         // TachiyomiAT
                         addTranslationsView()
                     }
-                    Page.State.ERROR -> setError()
+                    is Page.State.Error -> setError(state.error)
                 }
             }
         }
@@ -277,7 +278,7 @@ class WebtoonPageHolder(
      */
     private fun setError(error: Throwable?) {
         progressContainer.isVisible = false
-        initErrorLayout()
+        initErrorLayout(error)
         // TachiyomiAT
         translationsView?.hide()
     }

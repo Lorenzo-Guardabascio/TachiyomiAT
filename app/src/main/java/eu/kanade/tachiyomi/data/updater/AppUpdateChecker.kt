@@ -41,11 +41,7 @@ class AppUpdateChecker {
 }
 
 val GITHUB_REPO: String by lazy {
-    if (BuildConfig.PREVIEW) {
-        "mannu691/TachiyomiAT"
-    } else {
-        "mannu691/TachiyomiAT"
-    }
+    "mannu691/TachiyomiAT"
 }
 
 val RELEASE_TAG: String by lazy {

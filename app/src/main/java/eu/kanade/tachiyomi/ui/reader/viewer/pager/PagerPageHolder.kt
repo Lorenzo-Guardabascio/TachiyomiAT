@@ -7,12 +7,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.core.view.isVisible
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import eu.kanade.presentation.util.formattedMessage
 import eu.kanade.tachiyomi.databinding.ReaderErrorBinding
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
+import tachiyomi.i18n.MR
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
@@ -134,12 +136,12 @@ class PagerPageHolder(
                             progressIndicator?.setProgress(value)
                         }
                     }
-                    Page.State.READY -> {
+                    Page.State.Ready -> {
                         setImage()
                         // TachiyomiAT
                         addTranslationsView()
                     }
-                    Page.State.ERROR -> setError()
+                    is Page.State.Error -> setError(state.error)
                 }
             }
         }
@@ -278,7 +280,7 @@ class PagerPageHolder(
      */
     private fun setError(error: Throwable?) {
         progressIndicator?.hide()
-        showErrorLayout()
+        showErrorLayout(error)
         // TachiyomiAT
         translationsView?.hide()
     }
@@ -295,9 +297,9 @@ class PagerPageHolder(
     /**
      * Called when an image fails to decode.
      */
-    override fun onImageLoadError() {
-        super.onImageLoadError()
-        setError()
+    override fun onImageLoadError(error: Throwable?) {
+        super.onImageLoadError(error)
+        setError(error)
         // TachiyomiAT
         translationsView?.hide()
     }

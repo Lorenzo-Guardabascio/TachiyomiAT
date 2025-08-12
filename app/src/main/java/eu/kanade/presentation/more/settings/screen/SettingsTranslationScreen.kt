@@ -27,11 +27,11 @@ object SettingsTranslationScreen : SearchableSettings {
         val translationPreferences = remember { Injekt.get<TranslationPreferences>() }
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
-                pref = translationPreferences.autoTranslateAfterDownload(),
+                preference = translationPreferences.autoTranslateAfterDownload(),
                 title = stringResource(ATMR.strings.pref_translate_after_downloading),
             ),
             Preference.PreferenceItem.ListPreference(
-                pref = translationPreferences.translationFont(),
+                preference = translationPreferences.translationFont(),
                 title = stringResource(ATMR.strings.pref_reader_font),
                 entries = entries.withIndex().associate { it.index to it.value.label }.toImmutableMap(),
             ),
@@ -51,12 +51,12 @@ object SettingsTranslationScreen : SearchableSettings {
             title = stringResource(ATMR.strings.pref_group_setup),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
-                    pref = translationPreferences.translateFromLanguage(),
+                    preference = translationPreferences.translateFromLanguage(),
                     title = stringResource(ATMR.strings.pref_translate_from),
                     entries = fromLangs.associate { it.name to it.label }.toImmutableMap(),
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    pref = translationPreferences.translateToLanguage(),
+                    preference = translationPreferences.translateToLanguage(),
                     title = stringResource(ATMR.strings.pref_translate_to),
                     entries = toLangs.associate { it.name to it.label }.toImmutableMap(),
                 ),
@@ -73,12 +73,12 @@ object SettingsTranslationScreen : SearchableSettings {
             title = stringResource(ATMR.strings.pref_group_engine),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
-                    pref = translationPreferences.translationEngine(),
+                    preference = translationPreferences.translationEngine(),
                     title = stringResource(ATMR.strings.pref_translator_engine),
                     entries = engines.withIndex().associate { it.index to it.value.label }.toImmutableMap(),
                 ),
                 Preference.PreferenceItem.EditTextPreference(
-                    pref = translationPreferences.translationEngineApiKey(),
+                    preference = translationPreferences.translationEngineApiKey(),
                     subtitle = stringResource(ATMR.strings.pref_sub_engine_api_key),
                     title = stringResource(ATMR.strings.pref_engine_api_key),
                 ),
@@ -94,15 +94,15 @@ object SettingsTranslationScreen : SearchableSettings {
             title = stringResource(ATMR.strings.pref_group_advanced),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.EditTextPreference(
-                    pref = translationPreferences.translationEngineModel(),
+                    preference = translationPreferences.translationEngineModel(),
                     title = stringResource(ATMR.strings.pref_engine_model),
                 ),
                 Preference.PreferenceItem.EditTextPreference(
-                    pref = translationPreferences.translationEngineTemperature(),
+                    preference = translationPreferences.translationEngineTemperature(),
                     title = stringResource(ATMR.strings.pref_engine_temperature),
                 ),
                 Preference.PreferenceItem.EditTextPreference(
-                    pref = translationPreferences.translationEngineMaxOutputTokens(),
+                    preference = translationPreferences.translationEngineMaxOutputTokens(),
                     title = stringResource(ATMR.strings.pref_engine_max_output),
                 ),
             ),

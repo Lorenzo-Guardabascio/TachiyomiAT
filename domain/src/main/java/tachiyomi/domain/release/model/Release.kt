@@ -1,5 +1,7 @@
 package tachiyomi.domain.release.model
 
+import android.os.Build
+
 /**
  * Contains information about the latest release.
  */

@@ -194,6 +194,9 @@ dependencies {
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
 
+    // RichText Editor per le note manga
+    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc07")
+
     implementation(androidx.interpolator)
 
     implementation(androidx.paging.runtime)

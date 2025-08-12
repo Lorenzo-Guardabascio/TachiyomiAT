@@ -40,8 +40,8 @@ fun MangaNotesDisplay(
         alpha.animateTo(targetValue = 1f, animationSpec = FADE_TIME)
     }
     LaunchedEffect(Unit) {
-        richTextState.config.unorderedListIndent = 4
-        richTextState.config.orderedListIndent = 20
+        // richTextState.config.unorderedListIndent = 4
+        // richTextState.config.orderedListIndent = 20
     }
     LaunchedEffect(primaryColor) {
         richTextState.config.linkColor = primaryColor
