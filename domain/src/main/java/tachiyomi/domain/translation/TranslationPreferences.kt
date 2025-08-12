@@ -17,10 +17,11 @@ class TranslationPreferences(
     fun translationEngineTemperature() = preferenceStore.getString("translation_engine_temperature", "1")
     fun translationEngineMaxOutputTokens() = preferenceStore.getString("translation_engine_output_tokens", "8192")
     
-    // Nuove preferenze per i miglioramenti delle traduzioni
+    // Nuove preferenze per traduzioni migliorate
     fun useImprovedTranslationRendering() = preferenceStore.getBoolean("use_improved_translation_rendering", true)
-    fun translationTextOpacity() = preferenceStore.getFloat("translation_text_opacity", 0.9f)
+    fun translationTextOpacity() = preferenceStore.getFloat("translation_text_opacity", 0.95f)
     fun translationBackgroundOpacity() = preferenceStore.getFloat("translation_background_opacity", 0.92f)
-    fun adaptiveTextSizing() = preferenceStore.getBoolean("adaptive_text_sizing", true)
-    fun smartTextAlignment() = preferenceStore.getBoolean("smart_text_alignment", true)
+    fun translationPaddingMultiplier() = preferenceStore.getFloat("translation_padding_multiplier", 1.3f)
+    fun translationMinFontSize() = preferenceStore.getInt("translation_min_font_size", 8)
+    fun translationMaxFontSize() = preferenceStore.getInt("translation_max_font_size", 48)
 }

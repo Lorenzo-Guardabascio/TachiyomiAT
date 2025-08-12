@@ -1,25 +1,33 @@
 package eu.kanade.translation.presentation
 
 import android.content.Context
+import android.graphics.PointF
 import android.util.AttributeSet
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.toFontFamily
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import eu.kanade.translation.data.TranslationFont
 import eu.kanade.translation.model.PageTranslation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.max
 
 class ImprovedWebtoonTranslationsView :
     AbstractComposeView {
@@ -56,40 +64,103 @@ class ImprovedWebtoonTranslationsView :
         ).toFontFamily()
     }
 
+    val scaleState = MutableStateFlow(1f)
+    val viewTLState = MutableStateFlow(PointF())
+
     @Composable
     override fun Content() {
-        var size by remember { mutableStateOf(IntSize.Zero) }
+        val viewTL by viewTLState.collectAsState()
+        val scale by scaleState.collectAsState()
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .onSizeChanged {
-                    size = it
-                    if (size == IntSize.Zero) {
-                        hide()
-                    } else {
-                        show()
-                    }
-                },
+                .absoluteOffset(viewTL.x.pxToDp(), viewTL.y.pxToDp()),
         ) {
-            if (size == IntSize.Zero) return
-            
-            // Calcolo migliorato del fattore di scala
-            val scaleFactorX = size.width.toFloat() / translation.imgWidth
-            val scaleFactorY = size.height.toFloat() / translation.imgHeight
-            val scaleFactor = kotlin.math.min(scaleFactorX, scaleFactorY) // Usa il fattore più conservativo
-            
-            RenderTranslations(scaleFactor)
+            // Background ottimizzato per webtoon
+            WebtoonTextBlockBackground(scale)
+            // Contenuto ottimizzato per webtoon
+            WebtoonTextBlockContent(scale)
         }
     }
 
     @Composable
-    fun RenderTranslations(scaleFactor: Float) {
+    fun WebtoonTextBlockBackground(zoomScale: Float) {
         translation.blocks.forEach { block ->
+            // Padding specifico per webtoon (spesso verticali)
+            val padX = if (block.angle > 85 || block.angle < -85) {
+                block.symWidth * 2.0f  // Padding maggiore per testo verticale
+            } else {
+                block.symWidth * 1.3f  // Padding normale per testo orizzontale
+            }
+            
+            val padY = block.symHeight * 1.2f
+            val bgX = max((block.x - padX / 2) * zoomScale, 0.0f)
+            val bgY = max((block.y - padY / 2) * zoomScale, 0.0f)
+            val bgWidth = (block.width + padX) * zoomScale
+            val bgHeight = (block.height + padY) * zoomScale
+            
+            val isVertical = block.angle > 85 || block.angle < -85
+            
+            Box(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.CenterStart, true)
+                    .offset(bgX.pxToDp(), bgY.pxToDp())
+                    .requiredSize(bgWidth.pxToDp(), bgHeight.pxToDp())
+                    .rotate(if (isVertical) 0f else block.angle)
+                    .background(
+                        color = Color.White.copy(alpha = 0.92f), // Trasparenza per webtoon
+                        shape = RoundedCornerShape(8.dp) // Angoli più arrotondati per webtoon
+                    ),
+            )
+        }
+    }
+
+    @Composable
+    fun WebtoonTextBlockContent(zoomScale: Float) {
+        translation.blocks.forEach { block ->
+            if (block.translation.isNotBlank()) {
+                WebtoonTranslationBlock(
+                    block = block,
+                    scaleFactor = zoomScale,
+                    fontFamily = fontFamily,
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun WebtoonTranslationBlock(
+        modifier: Modifier = Modifier,
+        block: eu.kanade.translation.model.TranslationBlock,
+        scaleFactor: Float,
+        fontFamily: FontFamily,
+    ) {
+        // Versione specializzata per webtoon con gestione migliorata del testo verticale
+        val isVertical = block.angle > 85 || block.angle < -85
+        
+        val adjustedPadX = if (isVertical) {
+            block.symWidth * 2.2f  // Più spazio per testo verticale
+        } else {
+            block.symWidth * 1.4f
+        }
+        val adjustedPadY = block.symHeight * 1.3f
+        
+        val xPx = max((block.x - adjustedPadX / 2) * scaleFactor, 0.0f)
+        val yPx = max((block.y - adjustedPadY / 2) * scaleFactor, 0.0f)
+        
+        val width = ((block.width + adjustedPadX) * scaleFactor).pxToDp()
+        val height = ((block.height + adjustedPadY) * scaleFactor).pxToDp()
+        
+        Box(
+            modifier = modifier
+                .wrapContentSize(Alignment.CenterStart, true)
+                .offset(xPx.pxToDp(), yPx.pxToDp())
+                .requiredSize(width, height),
+        ) {
             ImprovedTranslationBlock(
                 block = block,
-                scaleFactor = scaleFactor,
+                scaleFactor = 1f, // Già scalato nelle dimensioni
                 fontFamily = fontFamily,
-                showBackground = true,
+                modifier = Modifier.matchParentSize()
             )
         }
     }
@@ -100,5 +171,9 @@ class ImprovedWebtoonTranslationsView :
 
     fun hide() {
         isVisible = false
+    }
+    
+    fun updateTranslation(newTranslation: PageTranslation) {
+        // Aggiornamento dinamico per webtoon
     }
 }

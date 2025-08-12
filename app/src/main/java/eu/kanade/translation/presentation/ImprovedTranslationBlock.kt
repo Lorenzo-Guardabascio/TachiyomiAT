@@ -1,12 +1,10 @@
 package eu.kanade.translation.presentation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +19,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.kanade.translation.model.TranslationBlock
 import kotlin.math.max
@@ -33,28 +30,21 @@ fun ImprovedTranslationBlock(
     block: TranslationBlock,
     scaleFactor: Float,
     fontFamily: FontFamily,
-    showBackground: Boolean = true,
 ) {
-    // Algoritmi migliorati per il calcolo delle posizioni e dimensioni
-    val adjustedPadX = when {
-        block.text.length > 50 -> block.symWidth * 1.8f // Testo lungo, più padding orizzontale
-        block.text.length > 20 -> block.symWidth * 1.5f // Testo medio
-        else -> block.symWidth * 1.2f // Testo corto, meno padding
-    }
+    // Calcoli migliorati per il posizionamento
+    val adjustedPadX = block.symWidth * 1.5f  // Ridotto il padding orizzontale
+    val adjustedPadY = block.symHeight * 1.2f // Ridotto il padding verticale
     
-    val adjustedPadY = when {
-        block.text.contains('\n') || block.translation.contains('\n') -> block.symHeight * 1.2f // Testo multilinea
-        else -> block.symHeight * 0.8f // Testo singola linea
-    }
-    
+    // Posizionamento più preciso
     val xPx = max((block.x - adjustedPadX / 2) * scaleFactor, 0.0f)
     val yPx = max((block.y - adjustedPadY / 2) * scaleFactor, 0.0f)
+    
+    // Dimensioni ottimizzate
     val width = ((block.width + adjustedPadX) * scaleFactor).pxToDp()
     val height = ((block.height + adjustedPadY) * scaleFactor).pxToDp()
     
-    // Migliorata la detection dell'orientamento del testo
     val isVertical = block.angle > 85 || block.angle < -85
-    val isRotated = kotlin.math.abs(block.angle) > 15 && !isVertical
+    val isUpsideDown = block.angle > 135 || block.angle < -135
     
     Box(
         modifier = modifier
@@ -62,75 +52,42 @@ fun ImprovedTranslationBlock(
             .offset(xPx.pxToDp(), yPx.pxToDp())
             .requiredSize(width, height),
     ) {
-        // Background migliorato
-        if (showBackground) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .rotate(if (isVertical) 0f else block.angle)
-                    .background(
-                        Color.White.copy(alpha = 0.92f),
-                        shape = RoundedCornerShape(
-                            when {
-                                isVertical -> 1.dp
-                                isRotated -> 2.dp
-                                else -> 2.dp
-                            }
-                        )
-                    ),
-            )
-        }
-        
-        // Testo con algoritmo migliorato per il sizing
         val density = LocalDensity.current
-        val fontSize = remember { mutableStateOf(16.sp) }
+        val fontSize = remember { mutableStateOf(12.sp) }
         
         SubcomposeLayout { constraints ->
             val maxWidthPx = with(density) { width.roundToPx() }
             val maxHeightPx = with(density) { height.roundToPx() }
-            
-            // Algoritmo di ricerca binaria migliorato con limiti più intelligenti
-            val baseSize = min(maxWidthPx, maxHeightPx) / 20 // Dimensione base basata sulla box
-            var low = max(8, baseSize / 2) // Minimo leggibile, adattivo
-            var high = min(48, baseSize * 2) // Massimo ragionevole, adattivo
+
+            // Algoritmo migliorato per il calcolo della dimensione del font
+            var low = 6  // Dimensione minima font
+            var high = min(48, (maxHeightPx / 4).coerceAtLeast(8)) // Dimensione massima dinamica
             var bestSize = low
-            
-            // Pre-calcolo per determinare se il testo necessita wrapping
-            val textLength = block.translation.length
-            val estimatedLines = when {
-                textLength < 10 -> 1
-                textLength < 30 -> 2
-                else -> kotlin.math.ceil(textLength / 15.0).toInt()
-            }
-            
+
+            // Ricerca binaria migliorata
             while (low <= high) {
                 val mid = (low + high) / 2
-                val testResult = subcompose("size_test_$mid") {
+                val testSize = mid.sp
+                
+                val textLayoutResult = subcompose("test_$mid") {
                     Text(
                         text = block.translation,
-                        fontSize = mid.sp,
+                        fontSize = testSize,
                         fontFamily = fontFamily,
                         color = Color.Black,
                         overflow = TextOverflow.Visible,
-                        textAlign = when {
-                            isVertical -> TextAlign.Center
-                            estimatedLines > 1 -> TextAlign.Start
-                            else -> TextAlign.Center
-                        },
+                        textAlign = TextAlign.Center,
                         maxLines = Int.MAX_VALUE,
                         softWrap = true,
-                        lineHeight = (mid * 1.15f).sp, // Migliore spaziatura tra righe
-                        modifier = Modifier
-                            .width(width)
-                            .rotate(if (isVertical) 0f else block.angle),
+                        modifier = Modifier.width(width)
                     )
-                }[0].measure(Constraints(maxWidth = maxWidthPx))
+                }[0].measure(Constraints(maxWidth = maxWidthPx, maxHeight = maxHeightPx))
+
+                // Verifica sia altezza che larghezza con margine di sicurezza
+                val fitsHeight = textLayoutResult.height <= (maxHeightPx * 0.95).toInt()
+                val fitsWidth = textLayoutResult.width <= (maxWidthPx * 0.95).toInt()
                 
-                // Controllo migliorato che considera sia larghezza che altezza
-                val fitsWidth = testResult.width <= maxWidthPx
-                val fitsHeight = testResult.height <= maxHeightPx
-                
-                if (fitsWidth && fitsHeight) {
+                if (fitsHeight && fitsWidth) {
                     bestSize = mid
                     low = mid + 1
                 } else {
@@ -139,32 +96,35 @@ fun ImprovedTranslationBlock(
             }
             
             fontSize.value = bestSize.sp
-            
-            // Layout finale
-            val textPlaceable = subcompose("final_text") {
+
+            // Layout finale con posizionamento migliorato
+            val textPlaceable = subcompose("final") {
                 Text(
                     text = block.translation,
                     fontSize = fontSize.value,
                     fontFamily = fontFamily,
                     color = Color.Black,
                     softWrap = true,
-                    overflow = TextOverflow.Visible,
-                    textAlign = when {
-                        isVertical -> TextAlign.Center
-                        estimatedLines > 1 -> TextAlign.Start
-                        else -> TextAlign.Center
-                    },
-                    maxLines = Int.MAX_VALUE,
-                    lineHeight = (fontSize.value.value * 1.15f).sp,
+                    overflow = TextOverflow.Clip,
+                    textAlign = TextAlign.Center,
+                    maxLines = if (isVertical) Int.MAX_VALUE else 3, // Limite linee per testo orizzontale
                     modifier = Modifier
                         .width(width)
-                        .rotate(if (isVertical) 0f else block.angle)
-                        .align(Alignment.Center),
+                        .rotate(
+                            when {
+                                isVertical -> 0f
+                                isUpsideDown -> block.angle + 180f
+                                else -> block.angle
+                            }
+                        )
                 )
             }[0].measure(constraints)
-            
+
             layout(textPlaceable.width, textPlaceable.height) {
-                textPlaceable.place(0, 0)
+                // Posizionamento centrato
+                val xOffset = (constraints.maxWidth - textPlaceable.width) / 2
+                val yOffset = (constraints.maxHeight - textPlaceable.height) / 2
+                textPlaceable.place(xOffset, yOffset)
             }
         }
     }
