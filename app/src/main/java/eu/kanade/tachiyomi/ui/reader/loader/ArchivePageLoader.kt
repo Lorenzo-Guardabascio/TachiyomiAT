@@ -24,7 +24,7 @@ internal class ArchivePageLoader(
                 ReaderPage(i).apply {
                     translation = translations[entry.name]
                     stream = { reader.getInputStream(entry.name)!! }
-                    status = Page.State.READY
+                    status = Page.State.Ready
                 }
             }
             .toList()

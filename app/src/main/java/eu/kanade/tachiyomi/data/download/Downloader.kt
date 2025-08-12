@@ -299,7 +299,10 @@ class Downloader(
                     maxDownloadsFromSource > CHAPTERS_PER_SOURCE_QUEUE_WARNING_THRESHOLD
                 ) {
                     notifier.onWarning(
-                        context.stringResource(MR.strings.download_queue_size_warning),
+                        context.stringResource(
+                            MR.strings.download_queue_size_warning,
+                            context.stringResource(MR.strings.app_name),
+                        ),
                         WARNING_NOTIF_TIMEOUT_MS,
                         NotificationHandler.openUrl(context, LibraryUpdateNotifier.HELP_WARNING_URL),
                     )
@@ -315,7 +318,11 @@ class Downloader(
      * @param download the chapter to be downloaded.
      */
     private suspend fun downloadChapter(download: Download) {
-        val mangaDir = provider.getMangaDir(download.manga.title, download.source)
+        val mangaDir = provider.getMangaDir(download.manga.title, download.source).getOrElse { e ->
+            download.status = Download.State.ERROR
+            notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
+            return
+        }
 
         val availSpace = DiskUtil.getAvailableStorageSpace(mangaDir)
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
@@ -361,11 +368,11 @@ class Downloader(
                     flow {
                         // Fetch image URL if necessary
                         if (page.imageUrl.isNullOrEmpty()) {
-                            page.status = Page.State.LOAD_PAGE
+                            page.status = Page.State.LoadPage
                             try {
                                 page.imageUrl = download.source.getImageUrl(page)
                             } catch (e: Throwable) {
-                                page.status = Page.State.ERROR
+                                page.status = Page.State.Error(e)
                             }
                         }
 
@@ -452,12 +459,12 @@ class Downloader(
 
             page.uri = file.uri
             page.progress = 100
-            page.status = Page.State.READY
+            page.status = Page.State.Ready
         } catch (e: Throwable) {
             if (e is CancellationException) throw e
             // Mark this page as error and allow to download the remaining
             page.progress = 0
-            page.status = Page.State.ERROR
+            page.status = Page.State.Error(e)
             notifier.onError(e.message, download.chapter.name, download.manga.title, download.manga.id)
         }
     }
@@ -471,7 +478,7 @@ class Downloader(
      * @param filename the filename of the image.
      */
     private suspend fun downloadImage(page: Page, source: HttpSource, tmpDir: UniFile, filename: String): UniFile {
-        page.status = Page.State.DOWNLOAD_IMAGE
+        page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
             val response = source.getImage(page)

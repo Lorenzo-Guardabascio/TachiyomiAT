@@ -451,7 +451,6 @@
     <string name="pref_invalidate_download_cache">Anuloni indeksin e shkarkimeve</string>
     <string name="pref_auto_clear_chapter_cache">Pastro memorjen e kapitullit në mbylljen e aplikacionit</string>
     <string name="pref_clear_database">Pastro bazën e të dhënave</string>
-    <string name="clear_database_confirmation">A je i sigurt? Kapitujt e lexuar dhe progresi i elementeve që nuk janë në bibliotekë do të humbasin</string>
     <string name="no_pinned_sources">Nuk ke burime të gozhduara</string>
     <string name="local_filter_order_by">Urdhër nga</string>
     <string name="date">Data</string>
@@ -485,7 +484,6 @@
     <string name="notification_chapters_multiple">Kapitujt %1$s</string>
     <string name="notification_chapters_single">Kapitulli %1$s</string>
     <string name="library_errors_help">Për ndihmë se si të rregulloni gabimet e përditësimit të bibliotekës, shihni %1$s</string>
-    <string name="update_check_fdroid_migration_info">Një version i ri është në dispozicion nga publikimet zyrtare. Prekni për të mësuar se si të migroni nga publikimet jozyrtare të F-Droid.</string>
     <string name="pref_create_backup">Krijo kopje rezervë</string>
     <string name="pref_create_backup_summ">Mund të përdoret për të rivendosur bibliotekën aktuale</string>
     <string name="pref_restore_backup">Rivendos kopjen rezervë</string>
@@ -684,9 +682,6 @@
     <string name="pref_skip_dupe_chapters">Kapërceni kapitujt e kopjuar</string>
     <string name="pref_hide_in_library_items">Fshih elementet tashmë në bibliotekë</string>
     <string name="action_copy_to_clipboard">Kopjo në kujtesën e fragmenteve</string>
-    <string name="confirm_add_duplicate_manga">Ju keni një hyrje në librarni me të njëjtin emër.
-\n
-\nDëshironi të vazhdoni?</string>
     <string name="action_update_category">Përditëso kategorinë</string>
     <string name="track_error">%1$s gabim: %2$s</string>
     <string name="information_required_plain">*kërkohet</string>
