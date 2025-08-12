@@ -31,13 +31,15 @@ fun SmartTranslationBlock(
     fontFamily: FontFamily,
 
 ) {
-    val padX = block.symWidth * 2
-    val padY = block.symHeight
+    // Migliorato il calcolo del padding per una migliore disposizione del testo
+    val padX = block.symWidth * 1.5f // Ridotto da 2 a 1.5 per un padding più preciso
+    val padY = block.symHeight * 0.8f // Ridotto da 1 a 0.8 per un padding verticale più preciso
     val xPx = max((block.x - padX / 2) * scaleFactor, 0.0f)
     val yPx = max((block.y - padY / 2) * scaleFactor, 0.0f)
     val width = ((block.width + padX) * scaleFactor).pxToDp()
     val height = ((block.height + padY) * scaleFactor).pxToDp()
     val isVertical = block.angle > 85
+    
     Box(
         modifier = modifier
             .wrapContentSize(Alignment.CenterStart, true)
@@ -50,14 +52,14 @@ fun SmartTranslationBlock(
             val maxWidthPx = with(density) { width.roundToPx() }
             val maxHeightPx = with(density) { height.roundToPx() }
 
-            // Binary search for optimal font size
-            var low = 1
-            var high = 100 // Initial upper bound
+            // Migliorato l'algoritmo di ricerca binaria per la dimensione del font
+            var low = 6 // Aumentato il minimo da 1 a 6 per leggibilità
+            var high = 72 // Ridotto il massimo da 100 a 72 per evitare font troppo grandi
             var bestSize = low
 
             while (low <= high) {
                 val mid = ((low + high) / 2)
-                val textLayoutResult = subcompose(mid.sp) {
+                val textLayoutResult = subcompose("test_$mid") {
                     Text(
                         text = block.translation,
                         fontSize = mid.sp,
@@ -67,6 +69,7 @@ fun SmartTranslationBlock(
                         textAlign = TextAlign.Center,
                         maxLines = Int.MAX_VALUE,
                         softWrap = true,
+                        lineHeight = (mid * 1.1f).sp, // Aggiunto line height per miglior spaziatura
                         modifier = Modifier
                             .width(width)
                             .rotate(if (isVertical) 0f else block.angle)
@@ -74,7 +77,8 @@ fun SmartTranslationBlock(
                     )
                 }[0].measure(Constraints(maxWidth = maxWidthPx))
 
-                if (textLayoutResult.height <= maxHeightPx) {
+                // Migliorato il controllo per assicurarsi che il testo si adatti sia in larghezza che in altezza
+                if (textLayoutResult.height <= maxHeightPx && textLayoutResult.width <= maxWidthPx) {
                     bestSize = mid
                     low = mid + 1
                 } else {
@@ -83,8 +87,8 @@ fun SmartTranslationBlock(
             }
             fontSize.value = bestSize.sp
 
-            // Measure final layout
-            val textPlaceable = subcompose(Unit) {
+            // Layout finale con miglioramenti
+            val textPlaceable = subcompose("final") {
                 Text(
                     text = block.translation,
                     fontSize = fontSize.value,
@@ -94,11 +98,12 @@ fun SmartTranslationBlock(
                     overflow = TextOverflow.Visible,
                     textAlign = TextAlign.Center,
                     maxLines = Int.MAX_VALUE,
+                    lineHeight = (fontSize.value.value * 1.1f).sp, // Migliorata la spaziatura tra le righe
                     modifier = Modifier
                         .width(width)
                         .rotate(if (isVertical) 0f else block.angle)
                         .align(Alignment.Center),
-//                        .background(color = Color.Blue),
+//                        .background(color = Color.Blue), // Debug
                 )
             }[0].measure(constraints)
 

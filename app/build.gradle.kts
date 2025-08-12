@@ -30,7 +30,7 @@ android {
         applicationId = "app.kanade.tachiyomi.at"
 
         versionCode = 12
-        versionName = "0.17.2"
+        versionName = "0.19.1-AT"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -254,7 +254,7 @@ dependencies {
         exclude(group = "androidx.viewpager", module = "viewpager")
     }
     implementation(libs.insetter)
-    implementation(libs.bundles.richtext)
+    implementation(libs.bundles.markdown)
     implementation(libs.aboutLibraries.compose)
     implementation(libs.bundles.voyager)
     implementation(libs.compose.materialmotion)

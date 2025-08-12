@@ -2,20 +2,14 @@ package eu.kanade.translation.presentation
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.text.font.Font
@@ -23,12 +17,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.toFontFamily
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import eu.kanade.translation.data.TranslationFont
 import eu.kanade.translation.model.PageTranslation
 
-class WebtoonTranslationsView :
+class ImprovedWebtoonTranslationsView :
     AbstractComposeView {
 
     private val translation: PageTranslation
@@ -79,43 +72,24 @@ class WebtoonTranslationsView :
                 },
         ) {
             if (size == IntSize.Zero) return
-            val scaleFactor = size.width / translation.imgWidth
-            TextBlockBackground(scaleFactor)
-            TextBlockContent(scaleFactor)
+            
+            // Calcolo migliorato del fattore di scala
+            val scaleFactorX = size.width.toFloat() / translation.imgWidth
+            val scaleFactorY = size.height.toFloat() / translation.imgHeight
+            val scaleFactor = kotlin.math.min(scaleFactorX, scaleFactorY) // Usa il fattore più conservativo
+            
+            RenderTranslations(scaleFactor)
         }
     }
 
     @Composable
-    fun TextBlockBackground(scaleFactor: Float) {
+    fun RenderTranslations(scaleFactor: Float) {
         translation.blocks.forEach { block ->
-            // Migliorato il calcolo del padding per il background
-            val padX = block.symWidth * 0.3f // Ridotto il padding per una migliore precisione
-            val padY = block.symHeight * 0.2f
-            val bgX = (block.x - padX / 2) * scaleFactor
-            val bgY = (block.y - padY / 2) * scaleFactor
-            val bgWidth = (block.width + padX) * scaleFactor
-            val bgHeight = (block.height + padY) * scaleFactor
-            val isVertical = block.angle > 85
-            Box(
-                modifier = Modifier
-                    .offset(bgX.pxToDp(), bgY.pxToDp())
-                    .size(bgWidth.pxToDp(), bgHeight.pxToDp())
-                    .rotate(if (isVertical) 0f else block.angle)
-                    .background(
-                        Color.White.copy(alpha = 0.9f), // Aggiunta trasparenza per migliore integrazione
-                        shape = RoundedCornerShape(2.dp) // Ridotto il raggio per look più pulito
-                    ),
-            )
-        }
-    }
-
-    @Composable
-    fun TextBlockContent(scaleFactor: Float) {
-        translation.blocks.forEach { block ->
-            SmartTranslationBlock(
+            ImprovedTranslationBlock(
                 block = block,
                 scaleFactor = scaleFactor,
                 fontFamily = fontFamily,
+                showBackground = true,
             )
         }
     }

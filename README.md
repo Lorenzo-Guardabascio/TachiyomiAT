@@ -7,10 +7,10 @@
 
 # TachiyomiAT [App](#)
 
->[12-02-2025] Note : This project isn't abandoned,but current release might not work as intended, i am currently in process of rebasing it on latest mihon build and making it more robust with better text bubble placement. i don't release dev builds so next release might take some time
+>[12-08-2025] Update: Progetto aggiornato alla versione più recente di Mihon (v0.19.1) con miglioramenti sostanziali al sistema di traduzione. Il posizionamento delle bubble di testo è stato completamente rivisto per garantire maggiore precisione e leggibilità.
 
-### Full-featured reader with Automatic Managa Translations
-Discover,Translate and read manga, webtoons, comics, and more – easier than ever on your Android device.
+### Full-featured reader with Automatic Manga Translations
+Discover, Translate and read manga, webtoons, comics, and more – easier than ever on your Android device.
 
 [![Discord server](https://img.shields.io/discord/801338287012053042.svg?label=&labelColor=6A7EC2&color=7389D8&logo=discord&logoColor=FFFFFF)](https://discord.com/invite/rkvXfVPRdq)
 [![GitHub downloads](https://img.shields.io/github/downloads/mannu691/TachiyomiAT/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/mannu691/TachiyomiAT/releases)  
@@ -20,7 +20,7 @@ Discover,Translate and read manga, webtoons, comics, and more – easier than ev
 [![Discord Banner 3](https://discord.com/api/guilds/801338287012053042/widget.png?style=banner3)](https://discord.com/invite/rkvXfVPRdq)
 ## Download
 
-[Download - 0.16.7](https://github.com/mannu691/TachiyomiAT/releases)
+[Download - 0.19.1-AT](https://github.com/Lorenzo-Guardabascio/TachiyomiAT/releases)
 
 *Requires Android 8.0 or higher.*
 
@@ -28,11 +28,15 @@ Discover,Translate and read manga, webtoons, comics, and more – easier than ev
 
 <div align="left">  
 
-* All Features of the latest version of [Mihon](https://github.com/mihonapp/mihon)
-* Translate Chapters into any language
-* Choose Font You Like
+* All Features of the latest version of [Mihon](https://github.com/mihonapp/mihon) (v0.19.1)
+* Translate Chapters into any language with improved accuracy
+* Choose Font You Like with better text rendering
 * Automatic Translation on Download
 * Many options for Translators
+* **NEW**: Improved text positioning and sizing algorithms
+* **NEW**: Adaptive text wrapping and alignment
+* **NEW**: Better handling of rotated and vertical text
+* **NEW**: Configurable translation rendering options
 </div>  
 
 ## Supported Languages
@@ -69,11 +73,13 @@ Source : Tian Zuan : Chapter 615
 
 <div align="left">
 
-1. You can Translate a Chapter after Downloading it , there will be a button beside the download button
-2. You can Turn on Auto Translate to Automatically Start Translating a chapter after it is Translated
-3. For Api Based Translators Please add your own api key in the Settings
+1. You can Translate a Chapter after Downloading it, there will be a button beside the download button
+2. You can Turn on Auto Translate to Automatically Start Translating a chapter after it is Downloaded
+3. For API Based Translators Please add your own API key in the Settings
 4. Please select the appropriate language you want to translate from and translate to in Settings
-5. For OpenRouter translator you have to also provide the model you want to use in settings default is : google/gemma-2-9b-it:free
+5. For OpenRouter translator you have to also provide the model you want to use in settings default is: google/gemma-2-9b-it:free
+6. **NEW**: Enable "Improved Translation Rendering" in settings for better text positioning and readability
+7. **NEW**: Adjust translation opacity and background settings for optimal reading experience
 
 </div>  
 
