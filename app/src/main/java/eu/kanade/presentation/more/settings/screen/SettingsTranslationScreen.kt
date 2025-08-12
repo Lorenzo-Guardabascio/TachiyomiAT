@@ -37,6 +37,7 @@ object SettingsTranslationScreen : SearchableSettings {
             ),
             getTranslationLangGroup(translationPreferences),
             getTranslatioEngineGroup(translationPreferences),
+            getTranslationRenderingGroup(translationPreferences),
             getTranslatioAdvancedGroup(translationPreferences),
         )
     }
@@ -81,6 +82,37 @@ object SettingsTranslationScreen : SearchableSettings {
                     preference = translationPreferences.translationEngineApiKey(),
                     subtitle = stringResource(ATMR.strings.pref_sub_engine_api_key),
                     title = stringResource(ATMR.strings.pref_engine_api_key),
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getTranslationRenderingGroup(
+        translationPreferences: TranslationPreferences,
+    ): Preference.PreferenceGroup {
+        return Preference.PreferenceGroup(
+            title = "Rendering e Posizionamento",
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = translationPreferences.useImprovedTranslationRendering(),
+                    title = "Usa rendering migliorato",
+                    subtitle = "Abilita il nuovo sistema di rendering delle traduzioni"
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = translationPreferences.translationShadowEnabled(),
+                    title = "Ombra testo",
+                    subtitle = "Aggiunge ombra al testo per migliore leggibilità"
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = translationPreferences.hideTranslationOnLongPress(),
+                    title = "Nascondi con pressione lunga",
+                    subtitle = "Nascondi temporaneamente le traduzioni con pressione prolungata"
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = translationPreferences.hideTranslationOnNavigationLongPress(),
+                    title = "Nascondi con pressione nelle zone di navigazione",
+                    subtitle = "Nascondi traduzioni con pressione prolungata nelle zone destra/sinistra"
                 ),
             ),
         )

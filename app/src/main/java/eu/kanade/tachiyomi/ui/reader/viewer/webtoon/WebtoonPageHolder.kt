@@ -21,7 +21,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.translation.data.TranslationFont
-import eu.kanade.translation.presentation.WebtoonTranslationsView
+import eu.kanade.translation.presentation.ImprovedWebtoonTranslationsView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.collectLatest
@@ -60,7 +60,7 @@ class WebtoonPageHolder(
 
     // TachiyomiAT
     private var showTranslations = true
-    private var translationsView: WebtoonTranslationsView? = null
+    private var translationsView: ImprovedWebtoonTranslationsView? = null
 
     /**
      * Loading progress bar to indicate the current progress.
@@ -297,7 +297,7 @@ class WebtoonPageHolder(
     private fun addTranslationsView() {
         if (page?.translation == null) return
         frame.removeView(translationsView)
-        translationsView = WebtoonTranslationsView(context, translation = page!!.translation!!, font = font)
+        translationsView = ImprovedWebtoonTranslationsView(context, translation = page!!.translation!!, font = font)
         if (!showTranslations) translationsView?.hide()
         frame.addView(translationsView, MATCH_PARENT, MATCH_PARENT)
     }

@@ -19,7 +19,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
 import eu.kanade.translation.data.TranslationFont
-import eu.kanade.translation.presentation.PagerTranslationsView
+import eu.kanade.translation.presentation.ImprovedPagerTranslationsView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.collectLatest
@@ -56,7 +56,7 @@ class PagerPageHolder(
 
     // TachiyomiAT
     private var showTranslations = true
-    private var translationsView: PagerTranslationsView? = null
+    private var translationsView: ImprovedPagerTranslationsView? = null
 
     /**
      * Item that identifies this view. Needed by the adapter to not recreate views.
@@ -324,7 +324,7 @@ class PagerPageHolder(
     private fun addTranslationsView() {
         if (page.translation == null) return
         removeView(translationsView)
-        translationsView = PagerTranslationsView(context, translation = page.translation!!, font = font)
+        translationsView = ImprovedPagerTranslationsView(context, translation = page.translation!!, font = font)
         if (!showTranslations) translationsView?.hide()
         addView(translationsView, MATCH_PARENT, MATCH_PARENT)
     }

@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.PointF
 import android.util.AttributeSet
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentSize
@@ -13,10 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -27,6 +31,9 @@ import androidx.core.view.isVisible
 import eu.kanade.translation.data.TranslationFont
 import eu.kanade.translation.model.PageTranslation
 import kotlinx.coroutines.flow.MutableStateFlow
+import tachiyomi.domain.translation.TranslationPreferences
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.math.max
 
 class ImprovedWebtoonTranslationsView :
@@ -66,24 +73,55 @@ class ImprovedWebtoonTranslationsView :
 
     val scaleState = MutableStateFlow(1f)
     val viewTLState = MutableStateFlow(PointF())
+    private val translationPreferences: TranslationPreferences = Injekt.get()
 
     @Composable
     override fun Content() {
         val viewTL by viewTLState.collectAsState()
         val scale by scaleState.collectAsState()
-        Box(
-            modifier = Modifier
-                .absoluteOffset(viewTL.x.pxToDp(), viewTL.y.pxToDp()),
+        val visibilityState = rememberTranslationVisibilityState()
+        val scope = rememberCoroutineScope()
+        val hideOnLongPress = translationPreferences.hideTranslationOnLongPress().get()
+        val hideOnNavLongPress = translationPreferences.hideTranslationOnNavigationLongPress().get()
+        val hideDuration = translationPreferences.longPressHideDuration().get()
+        
+        NavigationAwareTranslationContainer(
+            modifier = Modifier.absoluteOffset(viewTL.x.pxToDp(), viewTL.y.pxToDp()),
+            translationPreferences = translationPreferences,
+            visibilityState = visibilityState,
+            onNavigationLongPress = { isLeftZone ->
+                // Callback per gestire azioni specifiche per zona sinistra/destra se necessario
+            }
         ) {
-            // Background ottimizzato per webtoon
-            WebtoonTextBlockBackground(scale)
-            // Contenuto ottimizzato per webtoon
-            WebtoonTextBlockContent(scale)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (hideOnLongPress && !hideOnNavLongPress) {
+                            Modifier.pointerInput(Unit) {
+                                detectTapGestures(
+                                    onLongPress = {
+                                        visibilityState.temporarilyHide(scope, hideDuration.toLong())
+                                    }
+                                )
+                            }
+                        } else Modifier
+                    )
+            ) {
+                // Background ottimizzato per webtoon
+                WebtoonTextBlockBackground(scale, if (hideOnLongPress || hideOnNavLongPress) visibilityState else null)
+                // Contenuto ottimizzato per webtoon  
+                WebtoonTextBlockContent(scale, if (hideOnLongPress || hideOnNavLongPress) visibilityState else null)
+            }
         }
     }
 
     @Composable
-    fun WebtoonTextBlockBackground(zoomScale: Float) {
+    fun WebtoonTextBlockBackground(zoomScale: Float, visibilityState: TranslationVisibilityState? = null) {
+        if (visibilityState != null && !visibilityState.shouldShowTranslations) {
+            return
+        }
+        
         translation.blocks.forEach { block ->
             // Padding specifico per webtoon (spesso verticali)
             val padX = if (block.angle > 85 || block.angle < -85) {
@@ -115,15 +153,15 @@ class ImprovedWebtoonTranslationsView :
     }
 
     @Composable
-    fun WebtoonTextBlockContent(zoomScale: Float) {
+    fun WebtoonTextBlockContent(zoomScale: Float, visibilityState: TranslationVisibilityState? = null) {
         translation.blocks.forEach { block ->
-            if (block.translation.isNotBlank()) {
-                WebtoonTranslationBlock(
-                    block = block,
-                    scaleFactor = zoomScale,
-                    fontFamily = fontFamily,
-                )
-            }
+            // Usa il nuovo componente avanzato per il rendering webtoon
+            AdvancedTranslationBlock(
+                block = block,
+                scaleFactor = zoomScale,
+                fontFamily = fontFamily,
+                visibilityState = visibilityState
+            )
         }
     }
 

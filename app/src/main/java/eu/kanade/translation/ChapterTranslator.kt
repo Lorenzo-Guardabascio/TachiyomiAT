@@ -232,7 +232,12 @@ class ChapterTranslator(
                     streamFn().use { tmpFile.openOutputStream().use { out -> it.copyTo(out) } }
                     val image = InputImage.fromFilePath(context, tmpFile.uri)
                     val result = textRecognizer.recognize(image)
-                    val blocks = result.textBlocks.filter { it.boundingBox != null && it.text.length > 1 }
+                    // Migliore filtraggio dei blocchi OCR per evitare testo troncato
+                    val blocks = result.textBlocks.filter { 
+                        it.boundingBox != null && 
+                        it.text.trim().length > 1 && 
+                        !it.text.matches(Regex("^[^\\p{L}]*$")) // Esclude blocchi solo simboli/numeri
+                    }
                     val pageTranslation = convertToPageTranslation(blocks, image.width, image.height)
                     if (pageTranslation.blocks.isNotEmpty()) pages[fileName] = pageTranslation
                 }
@@ -269,8 +274,8 @@ class ChapterTranslator(
                 ),
             )
         }
-        // Smart merge overlapping text blocks
-        translation.blocks = smartMergeBlocks(translation.blocks, 50, 30, 30)
+        // Smart merge con soglie più aggressive per testo continuo
+        translation.blocks = smartMergeBlocks(translation.blocks, 100, 50, 50)
 
         return translation
     }
@@ -305,10 +310,21 @@ class ChapterTranslator(
         xThreshold: Int,
         yThreshold: Int,
     ): Boolean {
+        // Migliorata logica di merge per testo continuo
         val isWidthSimilar = (b.width < a.width) || (abs(a.width - b.width) < widthThreshold)
         val isXClose = abs(a.x - b.x) < xThreshold
         val isYClose = (b.y - (a.y + a.height)) < yThreshold
-        return isWidthSimilar && isXClose && isYClose
+        
+        // Verifica se i blocchi sono parte dello stesso flow di testo
+        val isTextFlow = isXClose && isYClose && isWidthSimilar
+        
+        // Verifica se il testo ha senso insieme (evita merge di testi non correlati)
+        val textCompatible = a.text.trim().isNotEmpty() && 
+                           b.text.trim().isNotEmpty() && 
+                           !a.text.matches(Regex("^[0-9\\s]*$")) && 
+                           !b.text.matches(Regex("^[0-9\\s]*$"))
+        
+        return isTextFlow && textCompatible
     }
 
     private fun mergeTextBlock(a: TranslationBlock, b: TranslationBlock): TranslationBlock {
@@ -316,13 +332,23 @@ class ChapterTranslator(
         val newY = a.y
         val newWidth = kotlin.math.max(a.x + a.width, b.x + b.width) - newX
         val newHeight = kotlin.math.max(a.y + a.height, b.y + b.height) - newY
+        
+        // Merge del testo con migliore gestione della spaziatura
+        val mergedText = if (a.text.trim().endsWith(".") || a.text.trim().endsWith("!") || a.text.trim().endsWith("?")) {
+            "${a.text.trim()} ${b.text.trim()}"
+        } else {
+            "${a.text.trim()} ${b.text.trim()}"
+        }
+        
         return TranslationBlock(
-            a.text + " " + b.text,
+            mergedText,
             a.translation + " " + b.translation,
             newWidth,
             newHeight,
-            newX, newY, a.symHeight,
-            a.symWidth, a.angle,
+            newX, newY, 
+            kotlin.math.max(a.symHeight, b.symHeight),
+            kotlin.math.max(a.symWidth, b.symWidth), 
+            (a.angle + b.angle) / 2f, // Media degli angoli
         )
     }
 
@@ -343,36 +369,34 @@ class ChapterTranslator(
     }
 
     private fun areAllTranslationsFinished(): Boolean {
-        return queueState.value.none { it.status.value <= Translation.State.TRANSLATING.value }
+        return _queueState.value.none { it.status.value <= Translation.State.TRANSLATING.value }
     }
 
     private fun addToQueue(translation: Translation) {
         translation.status = Translation.State.QUEUE
-        _queueState.update {
-            it + translation
-        }
+        _queueState.update { it + translation }
     }
 
     private fun removeFromQueue(translation: Translation) {
-        _queueState.update {
-            if (translation.status == Translation.State.TRANSLATING || translation.status == Translation.State.QUEUE) {
+        _queueState.update { queue ->
+            if (translation.status == Translation.State.TRANSLATING || 
+                translation.status == Translation.State.QUEUE) {
                 translation.status = Translation.State.NOT_TRANSLATED
             }
-            it - translation
+            queue - translation
         }
     }
 
-    private inline fun removeFromQueueIf(predicate: (Translation) -> Boolean) {
+    private fun removeFromQueueIf(predicate: (Translation) -> Boolean) {
         _queueState.update { queue ->
-            val translations = queue.filter { predicate(it) }
+            val translations = queue.filter(predicate)
             translations.forEach { translation ->
                 if (translation.status == Translation.State.TRANSLATING ||
-                    translation.status == Translation.State.QUEUE
-                ) {
+                    translation.status == Translation.State.QUEUE) {
                     translation.status = Translation.State.NOT_TRANSLATED
                 }
             }
-            queue - translations
+            queue - translations.toSet()
         }
     }
 
@@ -385,11 +409,10 @@ class ChapterTranslator(
     }
 
     private fun internalClearQueue() {
-        _queueState.update {
-            it.forEach { translation ->
+        _queueState.update { queue ->
+            queue.forEach { translation ->
                 if (translation.status == Translation.State.TRANSLATING ||
-                    translation.status == Translation.State.QUEUE
-                ) {
+                    translation.status == Translation.State.QUEUE) {
                     translation.status = Translation.State.NOT_TRANSLATED
                 }
             }

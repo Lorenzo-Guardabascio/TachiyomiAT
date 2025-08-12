@@ -30,7 +30,13 @@ fun ImprovedTranslationBlock(
     block: TranslationBlock,
     scaleFactor: Float,
     fontFamily: FontFamily,
+    visibilityState: TranslationVisibilityState? = null,
 ) {
+    // Se la visibilità è controllata e le traduzioni sono nascoste, non mostrare nulla
+    if (visibilityState != null && !visibilityState.shouldShowTranslations) {
+        return
+    }
+    
     // Calcoli migliorati per il posizionamento
     val adjustedPadX = block.symWidth * 1.5f  // Ridotto il padding orizzontale
     val adjustedPadY = block.symHeight * 1.2f // Ridotto il padding verticale

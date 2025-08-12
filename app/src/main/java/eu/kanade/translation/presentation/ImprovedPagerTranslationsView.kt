@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.PointF
 import android.util.AttributeSet
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentSize
@@ -13,10 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -27,6 +31,9 @@ import androidx.core.view.isVisible
 import eu.kanade.translation.data.TranslationFont
 import eu.kanade.translation.model.PageTranslation
 import kotlinx.coroutines.flow.MutableStateFlow
+import tachiyomi.domain.translation.TranslationPreferences
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.math.max
 
 class ImprovedPagerTranslationsView :
@@ -66,19 +73,51 @@ class ImprovedPagerTranslationsView :
 
     val scaleState = MutableStateFlow(1f)
     val viewTLState = MutableStateFlow(PointF())
+    private val translationPreferences: TranslationPreferences = Injekt.get()
 
     @Composable
     override fun Content() {
-        val viewTL by viewTLState.collectAsState()
-        val scale by scaleState.collectAsState()
-        Box(
-            modifier = Modifier
-                .absoluteOffset(viewTL.x.pxToDp(), viewTL.y.pxToDp()),
-        ) {
-            // Background con trasparenza migliorata
-            ImprovedTextBlockBackground(scale)
-            // Contenuto del testo migliorato
-            ImprovedTextBlockContent(scale)
+        val scaleFactor by scaleState.collectAsState()
+        val visibilityState = rememberTranslationVisibilityState()
+        val scope = rememberCoroutineScope()
+        val hideOnLongPress = translationPreferences.hideTranslationOnLongPress().get()
+        val hideOnNavLongPress = translationPreferences.hideTranslationOnNavigationLongPress().get()
+        val hideDuration = translationPreferences.longPressHideDuration().get()
+        
+        if (translation.blocks.isNotEmpty()) {
+            NavigationAwareTranslationContainer(
+                translationPreferences = translationPreferences,
+                visibilityState = visibilityState,
+                onNavigationLongPress = { isLeftZone ->
+                    // Callback per gestire azioni specifiche per zona sinistra/destra se necessario
+                }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (hideOnLongPress && !hideOnNavLongPress) {
+                                Modifier.pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onLongPress = {
+                                            visibilityState.temporarilyHide(scope, hideDuration.toLong())
+                                        }
+                                    )
+                                }
+                            } else Modifier
+                        )
+                ) {
+                    for (block in translation.blocks) {
+                        // Usa il nuovo componente avanzato per il rendering
+                        AdvancedTranslationBlock(
+                            block = block,
+                            scaleFactor = scaleFactor,
+                            fontFamily = fontFamily,
+                            visibilityState = if (hideOnLongPress || hideOnNavLongPress) visibilityState else null
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -115,13 +154,14 @@ class ImprovedPagerTranslationsView :
     }
 
     @Composable
-    fun ImprovedTextBlockContent(zoomScale: Float) {
+    fun ImprovedTextBlockContent(zoomScale: Float, visibilityState: TranslationVisibilityState? = null) {
         translation.blocks.forEach { block ->
             if (block.translation.isNotBlank()) { // Solo blocchi con traduzione
                 ImprovedTranslationBlock(
                     block = block,
                     scaleFactor = zoomScale,
                     fontFamily = fontFamily,
+                    visibilityState = visibilityState
                 )
             }
         }
